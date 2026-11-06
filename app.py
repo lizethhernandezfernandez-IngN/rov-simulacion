@@ -211,3 +211,4 @@ with tab3:
     ### 4. Modificación en el Rumbo (`Yaw` / Propulsor `T6`)
     * **Suspensión ($T_6 = 0$):** El vehículo pierde el control activo de orientación (rumbo/guiñada). Ante la interacción con corrientes marinas incidentes en la proa, el ROV sufrirá una **rotación libre incontrolada**, dificultando o imposibilitando cualquier tarea de inspección dirigida.
     """)
+# Actualización forzada
