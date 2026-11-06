@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 
 # Configuración de página con estética Naval / Submarina
-st.set_page_config(page_title="ROV SF30k - Naval Subsea HUD", layout="wide")
+st.set_page_config(page_title="ROV SF30k - Análisis de Propulsión y 6-DOF", layout="wide")
 
 # Estilos CSS para Interfaz Naval Tactical HUD
 st.markdown("""
@@ -23,10 +23,18 @@ st.markdown("""
     }
     .metric-val { font-size: 20px; font-weight: bold; color: #00ffe1; font-family: monospace; }
     .metric-lbl { font-size: 12px; color: #88a2b9; text-transform: uppercase; }
+    .alert-box {
+        background-color: #2b0a0a;
+        border: 1px solid #ff4444;
+        padding: 10px;
+        border-radius: 5px;
+        color: #ff9999;
+        margin-bottom: 10px;
+    }
     </style>
 """, unsafe_allow_html=True)
 
-st.title("⚓ ROV SF30k — SIMULADOR NAVAL 6-DOF (HUD)")
+st.title("⚓ ROV SF30k — SIMULADOR NAVAL & ANÁLISIS DE FALLAS (6-DOF)")
 st.caption("Cátedra de Dinámica del Buque | Modelo Hidrodinámico Completo (Viktor Berg, NTNU 2012)")
 
 # --- BARRA LATERAL: PANELS DE CONTROL Y PROPULSORES ---
@@ -38,6 +46,7 @@ uc = st.sidebar.slider("Velocidad de Corriente (m/s)", 0.0, 3.0, 0.5, 0.1)
 
 st.sidebar.markdown("---")
 st.sidebar.subheader("🚀 Propulsores Individuales (-1.0 a 1.0)")
+st.sidebar.markdown("*Modifica o suspende (0.0) para evaluar fallas:*")
 T1 = st.sidebar.slider("Propulsor 1 (Surge Proa Babor)", -1.0, 1.0, 0.6, 0.1)
 T2 = st.sidebar.slider("Propulsor 2 (Surge Popa Estribor)", -1.0, 1.0, 0.6, 0.1)
 T3 = st.sidebar.slider("Propulsor 3 (Sway Lateral Proa)", -1.0, 1.0, 0.2, 0.1)
@@ -67,10 +76,10 @@ c5.markdown(f'<div class="metric-box"><div class="metric-val">{np.degrees(yaw[-1
 st.markdown("<br>", unsafe_allow_html=True)
 
 # --- PESTAÑAS DE NAVEGACIÓN ---
-tab1, tab2 = st.tabs(["🌐 ANIMACIÓN TRAYECTORIA 3D SUBMARINA", "📊 TELEMETRÍA DINÁMICA 6-DOF"])
+tab1, tab2, tab3 = st.tabs(["🌐 ANIMACIÓN 3D SUBMARINA", "📊 TELEMETRÍA 6-DOF", "📋 ANÁLISIS DE FALLAS Y REPORTE"])
 
 with tab1:
-    st.subheader("🌐 Visualización Tridimensional Animada (Plotly Frames)")
+    st.subheader("🌐 Visualización Tridimensional Animada")
     st.caption("Usa los controles de la gráfica (**▶ Play / Pause**) para reproducir la navegación del ROV en tiempo real.")
 
     frames = []
@@ -167,3 +176,38 @@ with tab2:
 
     plt.tight_layout()
     st.pyplot(fig)
+
+with tab3:
+    st.subheader("📋 Reporte Técnico: Comportamiento ante Modificación o Suspensión de Propulsores")
+    st.markdown("Esta sección detalla el análisis físico e hidrodinámico requerido para la asignación de Dinámica del Buque:")
+
+    # Evaluación en tiempo real basada en los valores actuales de los sliders
+    if T1 == 0 and T2 == 0:
+        st.markdown('<div class="alert-box">⚠️ <b>ALERTA DE SISTEMA:</b> Propulsores de Surge (T1 y T2) suspendidos. Pérdida total de avance longitudinal. El ROV sufre deriva por corriente ($U_c$).</div>', unsafe_allow_html=True)
+    elif T1 != T2:
+        st.markdown('<div class="alert-box">⚠️ <b>ALERTA DE SISTEMA:</b> Asimetría en Surge (T1 ≠ T2). Se genera momento acoplado de Yaw y Pitch no deseado.</div>', unsafe_allow_html=True)
+
+    if T3 == 0:
+        st.markdown('<div class="alert-box">⚠️ <b>ALERTA DE SISTEMA:</b> Propulsor Lateral (T3) suspendido. Imposibilidad de realizar traslación en Sway frente a perturbaciones transversales.</div>', unsafe_allow_html=True)
+
+    if T4 == 0 or T5 == 0:
+        if T4 != T5:
+            st.markdown('<div class="alert-box">⚠️ <b>ALERTA DE SISTEMA:</b> Asimetría vertical (T4/T5). El vehículo experimenta un par de alabeo (Roll) severo durante el cambio de profundidad.</div>', unsafe_allow_html=True)
+        else:
+            st.markdown('<div class="alert-box">⚠️ <b>ALERTA DE SISTEMA:</b> Control de Heave suspendido. Pérdida de mantenimiento de profundidad (Eje Z).</div>', unsafe_allow_html=True)
+
+    st.markdown("""
+    ### 1. Modificación en el Eje Longitudinal (`Surge` / Propulsores `T1` y `T2`)
+    * **Suspensión de un propulsor:** Si se apaga $T_1$ y se mantiene $T_2$, la fuerza de empuje deja de estar alineada con el centro de gravedad del ROV. Esto induce un **momento de guiñada (Yaw)** y un **cabeceo (Pitch)**, haciendo que el vehículo trace una trayectoria curva en lugar de avanzar en línea recta.
+    * **Suspensión total ($T_1 = 0, T_2 = 0$):** El ROV pierde su velocidad de avance longitudinal. Bajo la influencia de la corriente marina $U_c$, el vehículo experimenta una desaceleración exponencial y comienza a ser desplazado pasivamente por el flujo del agua.
+
+    ### 2. Modificación en el Eje Transversal (`Sway` / Propulsor `T3`)
+    * **Suspensión ($T_3 = 0$):** El ROV pierde la capacidad de realizar movimientos de "cangrejo" (desplazamiento lateral). Si una corriente o perturbación lateral golpea el cuerpo del ROV, este carecerá de fuerza de oposición, derivando lateralmente de manera descontrolada en el eje Y.
+
+    ### 3. Modificación en el Eje Vertical y Alabeo (`Heave` y `Roll` / Propulsores `T4` y `T5`)
+    * **Asimetría ($T_4 \neq T_5$):** Al generar fuerzas verticales desiguales a babor y estribor, se rompe el equilibrio del momento de alabeo ($\phi$). El ROV se inclinará lateralmente mientras desciende o asciende.
+    * **Suspensión total ($T_4 = 0, T_5 = 0$):** Se anula el control de profundidad. El ROV dependerá exclusivamente de su flotabilidad estática; si es neutral se mantendrá a profundidad constante (si no hay corrientes verticales), pero ante cualquier cambio de densidad o empuje externo, tenderá a hundirse o flotar libremente.
+
+    ### 4. Modificación en el Rumbo (`Yaw` / Propulsor `T6`)
+    * **Suspensión ($T_6 = 0$):** El vehículo pierde el control activo de orientación (rumbo/guiñada). Ante la interacción con corrientes marinas incidentes en la proa, el ROV sufrirá una **rotación libre incontrolada**, dificultando o imposibilitando cualquier tarea de inspección dirigida.
+    """)
