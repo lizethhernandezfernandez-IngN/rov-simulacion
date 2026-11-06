@@ -49,7 +49,6 @@ T6 = st.sidebar.slider("Propulsor 6 (Yaw / Guiñada)", -1.0, 1.0, 0.1, 0.1)
 N = 200
 time = np.linspace(0, 40, N)
 
-# Matrices simplificadas de cinemática/dinámica hidrodinámica
 surge = ((T1 + T2) * 2.5 - uc * 0.8) * (1 - np.exp(-time / 6.0)) + uc * 1.2 * np.sin(time / 5.0)
 sway = (T3 * 3.5 + uc * 0.6) * np.sin(time / 4.0) + (T6 * 0.5) * np.cos(time / 6.0)
 heave = 35.0 - ((T4 + T5) * 1.8) * (time / 40.0) + 0.3 * np.sin(time / 2.0)
@@ -74,7 +73,6 @@ with tab1:
     st.subheader("🌐 Visualización Tridimensional Animada (Plotly Frames)")
     st.caption("Usa los controles de la gráfica (**▶ Play / Pause**) para reproducir la navegación del ROV en tiempo real.")
 
-    # Creación de Frames para Animación
     frames = []
     for k in range(1, N, 2):
         frames.append(go.Frame(
@@ -85,7 +83,7 @@ with tab1:
                     line=dict(color='#00f0ff', width=5)
                 ),
                 go.Scatter3d(
-                    x=[surge[k-1]], y=[sway[k-1]], z=[-heave[k-1]],
+                    x=[surge[k-1]], y=[sway[k-1]], z=-heave[k-1],
                     mode='markers+text',
                     marker=dict(size=8, color='#ff0055', symbol='diamond'),
                     text=["ROV SF30k"], textposition="top center"
@@ -94,7 +92,6 @@ with tab1:
             name=f'frame{k}'
         ))
 
-    # Figura Inicial
     fig_3d = go.Figure(
         data=[
             go.Scatter3d(
@@ -104,7 +101,7 @@ with tab1:
                 name='Trayectoria Recorrida'
             ),
             go.Scatter3d(
-                x=[surge[0]], y=[sway[0]], z=[-heave[0]],
+                x=[surge[0]], y=[sway[0]], z=-heave[0],
                 mode='markers+text',
                 marker=dict(size=8, color='#ff0055', symbol='diamond'),
                 text=["ROV SF30k"], textposition="top center",
